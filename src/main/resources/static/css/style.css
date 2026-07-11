@@ -1,0 +1,43 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f5f6fa; color: #333; }
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+h1 { margin-bottom: 20px; font-size: 1.6rem; }
+h2 { font-size: 1rem; margin-bottom: 12px; color: #444; }
+
+/* 탭 */
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab-btn { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; background: #ddd; }
+.tab-btn.active { background: #4f46e5; color: white; }
+.tab-content.hidden { display: none; }
+
+/* 카드 */
+.card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
+input, select { padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: .9rem; }
+button { padding: 7px 14px; border: none; border-radius: 6px; background: #4f46e5; color: white; cursor: pointer; font-size: .9rem; }
+button:hover { background: #4338ca; }
+.btn-danger { background: #ef4444; }
+.btn-danger:hover { background: #dc2626; }
+.btn-sm { padding: 4px 10px; font-size: .8rem; background: #6b7280; }
+
+/* 테이블 */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+th, td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; }
+th { background: #f9fafb; font-weight: 600; }
+.btn-edit { background: #0ea5e9; padding: 4px 10px; font-size: .8rem; }
+.btn-del  { background: #ef4444; padding: 4px 10px; font-size: .8rem; }
+
+/* 로그 패널 */
+.log-panel { background: #1e1e2e; border-radius: 10px; padding: 16px; margin-top: 20px; }
+.log-header { display: flex; justify-content: space-between; align-items: center; color: #cdd6f4; margin-bottom: 10px; font-weight: 600; }
+#log-content { max-height: 280px; overflow-y: auto; }
+.log-entry { font-family: monospace; font-size: .8rem; white-space: pre-wrap; padding: 6px 8px; border-radius: 4px; margin-bottom: 6px; }
+.req    { color: #89dceb; background: rgba(137,220,235,.08); }
+.res-ok { color: #a6e3a1; background: rgba(166,227,161,.08); }
+.res-err{ color: #f38ba8; background: rgba(243,139,168,.08); }
+
+/* 토스트 */
+.toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-size: .9rem; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+.toast.hidden { display: none; }
+.toast.error { background: #ef4444; color: white; }
+.toast.info  { background: #4f46e5; color: white; }

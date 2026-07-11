@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멋사 멤버 관리 시스템</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>🦁 멋사 멤버 관리 시스템</h1>
+
+    <!-- 탭 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('member')">멤버 관리</button>
+        <button class="tab-btn" onclick="switchTab('assignment')">과제 관리</button>
+    </div>
+
+    <!-- 멤버 탭 -->
+    <div id="tab-member" class="tab-content">
+        <div class="card">
+            <h2>멤버 등록</h2>
+            <div class="form-row">
+                <select id="role-type">
+                    <option value="lion">🦁 아기사자 (Lion)</option>
+                    <option value="staff">🎓 운영진 (Staff)</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <input type="text" id="m-name" placeholder="이름">
+                <input type="text" id="m-major" placeholder="전공">
+                <input type="number" id="m-generation" placeholder="기수">
+                <input type="text" id="m-part" placeholder="파트">
+            </div>
+            <div class="form-row">
+                <input type="text" id="m-studentId" placeholder="학번 (아기사자)">
+                <input type="text" id="m-position" placeholder="직책 (운영진)">
+                <button onclick="createMember()">등록</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>멤버 조회</h2>
+            <div class="form-row">
+                <input type="text" id="m-filter-part" placeholder="파트명 (비우면 전체)">
+                <button onclick="loadMembers()">조회</button>
+            </div>
+            <div id="member-list"></div>
+        </div>
+    </div>
+
+    <!-- 과제 탭 -->
+    <div id="tab-assignment" class="tab-content hidden">
+        <div class="card">
+            <h2>과제 등록</h2>
+            <div class="form-row">
+                <input type="number" id="a-memberId" placeholder="멤버 ID">
+                <input type="text" id="a-title" placeholder="과제 제목">
+                <input type="text" id="a-desc" placeholder="과제 설명">
+                <button onclick="createAssignment()">등록</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>과제 조회 / 검색</h2>
+            <div class="form-row">
+                <button onclick="loadAllAssignments()">전체 조회</button>
+                <input type="number" id="a-filterMemberId" placeholder="멤버 ID">
+                <button onclick="loadAssignmentsByMember()">멤버별 조회</button>
+                <input type="text" id="a-keyword" placeholder="검색 키워드">
+                <button onclick="searchAssignments()">제목 검색</button>
+                <input type="number" id="a-searchId" placeholder="과제 ID">
+                <button onclick="getAssignment()">단건 조회</button>
+            </div>
+            <div id="assignment-list"></div>
+        </div>
+
+        <div class="card">
+            <h2>과제 수정 / 삭제</h2>
+            <div class="form-row">
+                <input type="number" id="a-editId" placeholder="과제 ID">
+                <button onclick="loadAssignmentForEdit()">불러오기</button>
+            </div>
+            <div class="form-row">
+                <input type="text" id="a-editTitle" placeholder="새 제목">
+                <input type="text" id="a-editDesc" placeholder="새 설명">
+                <button onclick="updateAssignment()">수정</button>
+                <button onclick="deleteAssignment()" class="btn-danger">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTTP 로그 패널 -->
+    <div class="log-panel">
+        <div class="log-header">
+            <span>📡 HTTP 통신 로그</span>
+            <button onclick="clearLog()" class="btn-sm">지우기</button>
+        </div>
+        <div id="log-content"></div>
+    </div>
+</div>
+
+<!-- 토스트 알림 -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="/js/member.js"></script>
+<script src="/js/assignment.js"></script>
+<script>
+    // ── 탭 전환 ──────────────────────────────────────────────
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+        event.target.classList.add('active');
+    }
+
+    // ── HTTP 통신 래퍼 ────────────────────────────────────────
+    async function httpFetch(method, url, body = null) {
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (body) options.body = JSON.stringify(body);
+
+        const reqLog = `[${method}] ${url}` + (body ? `\nRequest: ${JSON.stringify(body, null, 2)}` : '');
+        log(reqLog, 'req');
+
+        try {
+            const res = await fetch(url, options);
+            const text = await res.text();
+            const data = text ? JSON.parse(text) : null;
+            const statusClass = res.ok ? 'res-ok' : 'res-err';
+            log(`Status: ${res.status}\nResponse: ${text ? JSON.stringify(data, null, 2) : '(no body)'}`, statusClass);
+
+            if (!res.ok) {
+                const msg = data?.message || `HTTP ${res.status} 오류`;
+                showToast(msg, 'error');
+                return null;
+            }
+            return data;
+        } catch (e) {
+            log(`Network error: ${e.message}`, 'res-err');
+            showToast('서버에 연결할 수 없습니다.', 'error');
+            return null;
+        }
+    }
+
+    // ── 로그 ─────────────────────────────────────────────────
+    function log(msg, cls = '') {
+        const el = document.getElementById('log-content');
+        const div = document.createElement('div');
+        div.className = 'log-entry ' + cls;
+        div.textContent = msg;
+        el.prepend(div);
+    }
+    function clearLog() { document.getElementById('log-content').innerHTML = ''; }
+
+    // ── 토스트 ───────────────────────────────────────────────
+    function showToast(msg, type = 'info') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `toast ${type}`;
+        setTimeout(() => t.className = 'toast hidden', 3000);
+    }
+
+    // 최초 로드
+    loadMembers();
+</script>
+</body>
+</html>
